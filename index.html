@@ -1,0 +1,985 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Video Game Lifecycle Sales Distribution Estimator</title>
+  <style>
+    :root{
+      --bg:#0b0f17;
+      --card:#121a26;
+      --muted:#9fb0c6;
+      --text:#e9f0fb;
+      --line:#233248;
+      --accent:#7aa7ff;
+      --accent2:#a6ffcb;
+      --warn:#ffcc66;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background: radial-gradient(1200px 600px at 20% 0%, #121b2b 0%, var(--bg) 60%);
+      color:var(--text);
+    }
+    header{ padding:24px 18px 10px; max-width:1100px; margin:0 auto; }
+    h1{ margin:0; font-size:24px; letter-spacing:.2px; }
+    .sub{ margin:6px 0 0; color:var(--muted); line-height:1.35; }
+    main{
+      max-width:1100px;
+      margin:0 auto;
+      padding:16px 18px 28px;
+      display:grid;
+      gap:14px;
+    }
+    .grid{ display:grid; grid-template-columns: 1.1fr 0.9fr; gap:14px; }
+    @media (max-width: 900px){ .grid{ grid-template-columns:1fr; } }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+    }
+    .card h2{ margin:0 0 10px; font-size:16px; color:#d7e6ff; letter-spacing:.2px; }
+    .row{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    @media (max-width: 520px){ .row{ grid-template-columns:1fr; } }
+    label{ display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
+    input, select{
+      width:100%;
+      background: rgba(0,0,0,0.25);
+      border:1px solid var(--line);
+      color:var(--text);
+      border-radius:12px;
+      padding:10px 10px;
+      outline:none;
+    }
+    input:focus, select:focus{
+      border-color: rgba(122,167,255,0.7);
+      box-shadow: 0 0 0 3px rgba(122,167,255,0.15);
+    }
+    input[readonly]{ opacity:0.85; cursor:default; }
+
+    .inline{ display:flex; align-items:center; gap:10px; }
+    .inline input[type="checkbox"]{ width:auto; transform: translateY(1px); }
+    .pill{
+      display:inline-block;
+      padding:6px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      color:var(--muted);
+      font-size:12px;
+      margin-left:8px;
+      background: rgba(0,0,0,0.18);
+    }
+    .formula{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      background: rgba(0,0,0,0.25);
+      border:1px dashed rgba(159,176,198,0.35);
+      padding:10px;
+      border-radius:12px;
+      color:#d9e7ff;
+      overflow:auto;
+      line-height:1.35;
+      font-size:12.5px;
+    }
+    .kpi{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+    .kpi .box{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px;
+      background: rgba(0,0,0,0.18);
+    }
+    .kpi .big{ font-size:18px; margin-top:3px; color:#eaf3ff; }
+    .kpi .small{ color:var(--muted); font-size:12px; }
+
+    .canvasWrap{
+      border:1px solid var(--line);
+      border-radius:16px;
+      overflow:hidden;
+      background: rgba(0,0,0,0.25);
+    }
+    canvas{ display:block; width:100%; height:280px; }
+
+    table{ width:100%; border-collapse:collapse; font-size:12px; }
+    th, td{
+      padding:8px 8px;
+      border-bottom:1px solid rgba(35,50,72,0.7);
+      text-align:right;
+      white-space:nowrap;
+    }
+    th:first-child, td:first-child{ text-align:left; }
+    th{
+      color:#cfe0ff;
+      font-weight:600;
+      position:sticky;
+      top:0;
+      background: rgba(11,15,23,0.92);
+      backdrop-filter: blur(6px);
+      z-index:1;
+    }
+    .tableWrap{
+      max-height:520px;
+      overflow:auto;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background: rgba(0,0,0,0.18);
+    }
+
+    .note{ color:var(--muted); font-size:12px; line-height:1.35; }
+    .warn{ color:var(--warn); font-size:12px; margin-top:8px; display:none; }
+    .footer{ color:var(--muted); font-size:12px; margin-top:10px; }
+    .btnbar{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    button{
+      background: rgba(122,167,255,0.18);
+      border:1px solid rgba(122,167,255,0.35);
+      color:#eaf3ff;
+      border-radius:12px;
+      padding:10px 12px;
+      cursor:pointer;
+    }
+    button:hover{ background: rgba(122,167,255,0.28); }
+    .ghost{ background: rgba(0,0,0,0.18); border:1px solid var(--line); color:var(--muted); }
+
+    .rangeRow{
+      display:grid;
+      grid-template-columns: 1fr 120px;
+      gap:10px;
+      align-items:center;
+    }
+    .legend{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:10px;
+      color:var(--muted);
+      font-size:12px;
+      align-items:center;
+    }
+    .swatch{
+      width:12px;
+      height:12px;
+      border-radius:3px;
+      display:inline-block;
+      margin-right:6px;
+      border:1px solid rgba(255,255,255,0.18);
+    }
+
+    /* region controls */
+    .regionBox{
+      margin-top:10px;
+      padding:10px;
+      border:1px solid rgba(35,50,72,0.7);
+      border-radius:14px;
+      background: rgba(0,0,0,0.18);
+    }
+    .regionGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      align-items:start;
+    }
+    @media (max-width: 520px){
+      .regionGrid{ grid-template-columns:1fr; }
+    }
+    .regionRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      align-items:center;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .regionRow label{
+      margin:0;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-size:12px;
+      color:var(--muted);
+      cursor:pointer;
+    }
+    .regionRow input[type="radio"],
+    .regionRow input[type="checkbox"]{
+      width:auto;
+      margin:0;
+      transform: translateY(1px);
+    }
+    .subRegion{
+      padding:10px;
+      border:1px solid rgba(35,50,72,0.7);
+      border-radius:12px;
+      background: rgba(0,0,0,0.14);
+      display:none;
+    }
+    .subHint{
+      margin-top:8px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.35;
+    }
+    .miniKpis{
+      margin-top:10px;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    .miniKpis .box{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:10px;
+      background: rgba(0,0,0,0.18);
+    }
+
+    .emptyState{
+      border:1px dashed rgba(159,176,198,0.35);
+      border-radius:12px;
+      padding:10px;
+      color:var(--muted);
+      background: rgba(0,0,0,0.14);
+      font-size:12px;
+      line-height:1.35;
+      margin-top:10px;
+      display:none;
+    }
+
+    .wwQuestion{
+      margin-top:10px;
+      padding:10px;
+      border:1px solid rgba(35,50,72,0.7);
+      border-radius:12px;
+      background: rgba(0,0,0,0.14);
+    }
+    .wwQuestion .title{
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:8px;
+    }
+    .hlight{
+      color:yellow;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Video Game Lifecycle Sales Distribution Estimator</h1>
+  
+    Calculate game sales distributed over months of lifecycle using an exponential decay formula.<br>
+     - Front-end loaded, seasonal multipliers (Nov/Dec), normalized so monthly totals add up to sales total.<br>
+     - Includes a half-life slider + a no-holiday comparison curve.<br>
+  </p>
+</header>
+
+<main>
+  <div class="grid">
+    <section class="card">
+      <h2>Inputs</h2>
+      <p class="note">Instructions: Enter <b>'Total Sales'</b>, <b>'Number of Months sold'</b> and <b>'Launch Month'</b></p>
+      <div class="row">
+        <div>
+          <label for="totalSales">Total Sales</label>
+          <input id="totalSales" type="number" min="0" step="1000" value="" placeholder="Enter total sales (e.g., 5300000)" />
+
+          <!-- NEW: worldwide yes/no -->
+          <div class="wwQuestion">
+            <div class="title">Is this worldwide sales?</div>
+            <div class="regionRow" aria-label="Worldwide sales question">
+              <label><input type="radio" name="isWorldwide" id="isWWYes" value="yes" checked> Yes</label>
+              <label><input type="radio" name="isWorldwide" id="isWWNo" value="no"> No</label>
+            </div>
+            <div class="subHint" id="wwHint">
+              If <b>Yes</b>, we can convert Worldwide into NA / Europe / Japan. If <b>No</b>, we assume the number you entered is already the region you want.
+            </div>
+          </div>
+
+          <div class="regionBox" id="regionBox">
+            <div class="regionGrid">
+              <div>
+                <div class="regionRow" aria-label="Region selector">
+                  <label><input type="radio" name="region" id="regWW" value="WW" checked> Worldwide</label>
+                  <label><input type="radio" name="region" id="regNA" value="NA"> North America</label>
+                  <label><input type="radio" name="region" id="regEU" value="EU"> Europe</label>
+                  <label><input type="radio" name="region" id="regJP" value="JP"> Japan</label>
+                </div>
+                <div class="subHint">
+                  These only apply when <b>Is this worldwide sales?</b> is set to <b>Yes</b>.
+                </div>
+              </div>
+
+              <div class="subRegion" id="naSubRegion">
+                <div class="regionRow">
+                  <label><input type="checkbox" id="naUSA" checked> USA (80%)</label>
+                  <label><input type="checkbox" id="naCAN" checked> Canada (12%)</label>
+                  <label><input type="checkbox" id="naMEX" checked> Mexico (8%)</label>
+                </div>
+                <div class="subHint">
+                  NA is modeled as 45% of Worldwide, then filtered by selected sub-shares.
+                </div>
+              </div>
+            </div>
+
+            <div class="miniKpis">
+              <div class="box">
+                <div class="small" style="color:var(--muted); font-size:12px;">Effective Sales Used (S)</div>
+                <div class="big" id="kpiEffectiveSales" style="font-size:18px; margin-top:3px;">�</div>
+              </div>
+              <div class="box">
+                <div class="small" style="color:var(--muted); font-size:12px;">Applied Fraction</div>
+                <div class="big" id="kpiFraction" style="font-size:18px; margin-top:3px;">�</div>
+              </div>
+            </div>
+
+            <div class="emptyState" id="emptyState">
+              Fill in <b>Total Sales</b>, <b>Months Sold</b>, and <b>Launch Month</b> (or hit <b>Load Your Example</b>) to generate the curve.
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label for="monthsSold">Number of Months sold (N)</label>
+          <input id="monthsSold" type="number" min="1" step="1" value="" placeholder="Enter months (e.g., 72)" />
+        </div>
+        <div>
+          <label for="launchMonth">Launch month (m0)</label>
+          <select id="launchMonth">
+            <option value="" selected disabled>Select launch month</option>
+            <option value="1">Jan (1)</option>
+            <option value="2">Feb (2)</option>
+            <option value="3">Mar (3)</option>
+            <option value="4">Apr (4)</option>
+            <option value="5">May (5)</option>
+            <option value="6">Jun (6)</option>
+            <option value="7">Jul (7)</option>
+            <option value="8">Aug (8)</option>
+            <option value="9">Sep (9)</option>
+            <option value="10">Oct (10)</option>
+            <option value="11">Nov (11)</option>
+            <option value="12">Dec (12)</option>
+          </select>
+        </div>
+        <button id="clearAll" class="ghost">Clear All</button>
+        
+        <div>
+          <!--<label for="showAdvanced">Advanced Controls</label> -->
+          <div class="inline">
+            <input id="showAdvanced" type="checkbox"/>
+            <span class="note">Show Advanced Controls</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="advancedArea" style="margin-top:10px;">
+        <div class="row">
+          <div>
+            <label for="halfLife">Half-life H (months until sales halve)</label>
+            <div class="rangeRow">
+              <input id="halfLife" type="range" min="1" max="36" step="1" value="10" />
+              <input id="halfLifeNum" type="number" min="1" max="120" step="1" value="10" />
+            </div>
+            <div class="note">r is derived from half-life: r = 0.5^(1/H)</div>
+          </div>
+
+          <div>
+            <label for="derivedR">Derived decay factor r</label>
+            <input id="derivedR" type="text" readonly value="�" />
+            <div class="note">Higher r = slower taper</div>
+          </div>
+
+          <div>
+            <label for="novBump">November bump bNov (e.g. 0.15 = +15%)</label>
+            <input id="novBump" type="number" min="-0.9" max="5" step="0.01" value="0.15" />
+          </div>
+
+          <div>
+            <label for="decBump">December bump bDec (e.g. 0.30 = +30%)</label>
+            <input id="decBump" type="number" min="-0.9" max="5" step="0.01" value="0.30" />
+          </div>
+
+          <div>
+            <label for="showNoHoliday">No-holidays curve overlay</label>
+            <div class="inline">
+              <input id="showNoHoliday" type="checkbox" checked />
+              <span class="note">Overlay pure-decay curve on chart</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="warn" id="warnMsg"></p>
+
+        <div class="btnbar">
+          <button id="useExample">Demo PS2 FFX</button>
+          <button id="exportCSV" class="ghost">Export table as CSV</button>
+          <button id="copyLink" class="ghost">Copy sharable URL (query params)</button>
+        </div>
+      </div>
+
+      <div class="kpi">
+        <div class="box">
+          <div class="small">Month 1 sales (with holidays)</div>
+          <div class="big" id="kpiM1">�</div>
+        </div>
+        <div class="box">
+          <div class="small">Peak month sales (with holidays)</div>
+          <div class="big" id="kpiPeak">�</div>
+        </div>
+        <div class="box">
+          <div class="small">Total (check, with holidays)</div>
+          <div class="big" id="kpiTotal">�</div>
+        </div>
+        <div class="box">
+          <div class="small">Nov & Dec share (with holidays)</div>
+          <div class="big" id="kpiHolidayShare">�</div>
+        </div>
+      </div>
+
+      <div class="footer">
+        Tip: All numbers rounded to the nearest whole number.
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Calculations:</h2>
+      <div class="formula">
+Let <font class="hlight">S</font> = effective sales used (after any filters)<br>
+<font class="hlight">N</font> = months sold<br>
+<font class="hlight">t</font> = 1..N<br>
+<font class="hlight">m0</font> = launch month (1..12), bNov, bDec<br>
+<font class="hlight">H</font> = half-life: months until sales halve<br>
+<font class="hlight">r</font> = 0.5^(1/H)<br>
+<font class="hlight">m(t)</font> = calendar month = ((m0 - 1 + (t - 1)) mod 12) + 1<br>
+<font class="hlight">s(t)</font> = season multiplier = 1 + { bNov if m(t)=11; bDec if m(t)=12; 0 otherwise }<br>
+<font class="hlight">w(t)</font> = weight = r^(t-1) * s(t)<br>
+<font class="hlight">M(t)</font> = monthly sales (normalized) = S * w(t) / (sum_{k=1..N} w(k))<br>
+      </div>
+
+      <h2 style="margin-top:12px;">Chart</h2>
+      <div class="canvasWrap">
+        <canvas id="chart" width="900" height="280"></canvas>
+      </div>
+
+      <div class="legend">
+        <span><span class="swatch" style="background: rgba(166,255,203,0.75);"></span>With Nov/Dec bumps</span>
+        <span><span class="swatch" style="background: rgba(122,167,255,0.75);"></span>No holidays (pure decay)</span>
+        <span class="note">Dots mark Nov/Dec months on the �with holidays� curve.</span>
+      </div>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Monthly output (with holidays)</h2>
+    <div class="tableWrap">
+      <table id="outTable">
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th>Calendar</th>
+            <th>Season</th>
+            <th>Weight</th>
+            <th>Sales</th>
+            <th>Cumulative</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  const REGION = { WW: 1.00, NA: 0.45, EU: 0.25, JP: 0.30 };
+  const NA_SHARES = { USA: 0.80, CAN: 0.12, MEX: 0.08 };
+
+  const inputs = {
+    totalSales: $("totalSales"),
+    N: $("monthsSold"),
+    m0: $("launchMonth"),
+
+    isWWYes: $("isWWYes"),
+    isWWNo: $("isWWNo"),
+    regionBox: $("regionBox"),
+
+    regWW: $("regWW"),
+    regNA: $("regNA"),
+    regEU: $("regEU"),
+    regJP: $("regJP"),
+
+    naUSA: $("naUSA"),
+    naCAN: $("naCAN"),
+    naMEX: $("naMEX"),
+    naSubRegion: $("naSubRegion"),
+
+    halfLife: $("halfLife"),
+    halfLifeNum: $("halfLifeNum"),
+    derivedR: $("derivedR"),
+
+    bNov: $("novBump"),
+    bDec: $("decBump"),
+
+    showNoHoliday: $("showNoHoliday"),
+    showAdvanced: $("showAdvanced"),
+
+    emptyState: $("emptyState"),
+  };
+
+  const advancedArea = $("advancedArea");
+  const warnMsg = $("warnMsg");
+
+  const tableBody = $("outTable").querySelector("tbody");
+  const kpiM1 = $("kpiM1");
+  const kpiPeak = $("kpiPeak");
+  const kpiTotal = $("kpiTotal");
+  const kpiHolidayShare = $("kpiHolidayShare");
+
+  const kpiEffectiveSales = $("kpiEffectiveSales");
+  const kpiFraction = $("kpiFraction");
+
+  const canvas = $("chart");
+  const ctx = canvas.getContext("2d");
+
+  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+  function fmtNum(x){
+    return Number(x).toLocaleString(undefined, { maximumFractionDigits:0, minimumFractionDigits:0 });
+  }
+
+  function calMonth(m0, t){
+    return ((m0 - 1 + (t - 1)) % 12) + 1;
+  }
+
+  function seasonMultiplier(calendarMonth, bNov, bDec, enableHolidays){
+    if (!enableHolidays) return 1;
+    if (calendarMonth === 11) return 1 + bNov;
+    if (calendarMonth === 12) return 1 + bDec;
+    return 1;
+  }
+
+  function rFromHalfLife(H){
+    const h = Math.max(1e-9, Number(H));
+    return Math.pow(0.5, 1 / h);
+  }
+
+  function clampHalfLife(val){
+    const n = Math.max(1, Math.floor(Number(val)));
+    return Math.min(36, Math.max(1, n));
+  }
+
+  function isWorldwideMode(){
+    return inputs.isWWYes.checked;
+  }
+
+  function getSelectedRegion(){
+    if (inputs.regNA.checked) return "NA";
+    if (inputs.regEU.checked) return "EU";
+    if (inputs.regJP.checked) return "JP";
+    return "WW";
+  }
+
+  function getRegionFraction(){
+    // If the user said "No" (not worldwide), then we do nothing.
+    if (!isWorldwideMode()) return 1.0;
+
+    const region = getSelectedRegion();
+    let frac = REGION[region] ?? 1.0;
+
+    if (region === "NA"){
+      let sub = 0;
+      if (inputs.naUSA.checked) sub += NA_SHARES.USA;
+      if (inputs.naCAN.checked) sub += NA_SHARES.CAN;
+      if (inputs.naMEX.checked) sub += NA_SHARES.MEX;
+      frac *= sub;
+    }
+    return frac;
+  }
+
+  function computeEffectiveSales(){
+    const raw = Number(inputs.totalSales.value);
+    const frac = getRegionFraction();
+    const effective = raw * frac;
+    return { raw, frac, effective };
+  }
+
+  function isReady(){
+    return inputs.totalSales.value !== "" && inputs.N.value !== "" && inputs.m0.value !== "";
+  }
+
+  function computeSeries({ enableHolidays }){
+    const { effective } = computeEffectiveSales();
+    const S = effective;
+
+    const N = Math.max(1, Math.floor(Number(inputs.N.value)));
+    const m0 = Number(inputs.m0.value);
+
+    const H = Math.max(1, Math.floor(Number(inputs.halfLifeNum.value)));
+    const r = rFromHalfLife(H);
+
+    const bNov = Number(inputs.bNov.value);
+    const bDec = Number(inputs.bDec.value);
+
+    const rows = [];
+    let denom = 0;
+
+    for (let t=1; t<=N; t++){
+      const cm = calMonth(m0, t);
+      const s = seasonMultiplier(cm, bNov, bDec, enableHolidays);
+      const w = Math.pow(r, (t-1)) * s;
+      denom += w;
+      rows.push({ t, cm, s, w, sales: 0, cum: 0 });
+    }
+
+    let cum = 0;
+    for (const row of rows){
+      row.sales = (denom > 0) ? (S * row.w / denom) : 0;
+      cum += row.sales;
+      row.cum = cum;
+    }
+
+    return { S, N, m0, H, r, bNov, bDec, denom, rows };
+  }
+
+  function drawChart(rowsWith, rowsNo){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    const padL = 44, padR = 14, padT = 12, padB = 28;
+    const W = canvas.width - padL - padR;
+    const Hh = canvas.height - padT - padB;
+
+    let maxY = 0;
+    for (const r of rowsWith) maxY = Math.max(maxY, r.sales);
+    if (rowsNo) for (const r of rowsNo) maxY = Math.max(maxY, r.sales);
+    if (maxY <= 0) maxY = 1;
+
+    ctx.globalAlpha = 0.9;
+    ctx.strokeStyle = "rgba(159,176,198,0.35)";
+    ctx.lineWidth = 1;
+
+    const gridLines = 5;
+    for (let i=0;i<=gridLines;i++){
+      const y = padT + (Hh * i / gridLines);
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(padL + W, y);
+      ctx.stroke();
+
+      const val = maxY * (1 - i / gridLines);
+      ctx.fillStyle = "rgba(159,176,198,0.75)";
+      ctx.font = "12px ui-sans-serif, system-ui";
+      ctx.fillText(fmtNum(val), 6, y + 4);
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(padL, padT + Hh);
+    ctx.lineTo(padL + W, padT + Hh);
+    ctx.stroke();
+
+    const n = rowsWith.length;
+
+    // with-holidays
+    ctx.strokeStyle = "rgba(166,255,203,0.75)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    rowsWith.forEach((r, i) => {
+      const x = padL + (W * (i / Math.max(1, n-1)));
+      const y = padT + Hh - (Hh * (r.sales / maxY));
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // no-holidays overlay
+    if (rowsNo){
+      ctx.strokeStyle = "rgba(122,167,255,0.75)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      rowsNo.forEach((r, i) => {
+        const x = padL + (W * (i / Math.max(1, n-1)));
+        const y = padT + Hh - (Hh * (r.sales / maxY));
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    }
+
+    // highlight Nov/Dec points
+    ctx.fillStyle = "rgba(255,255,255,0.85)";
+    rowsWith.forEach((r, i) => {
+      if (r.cm === 11 || r.cm === 12){
+        const x = padL + (W * (i / Math.max(1, n-1)));
+        const y = padT + Hh - (Hh * (r.sales / maxY));
+        ctx.beginPath();
+        ctx.arc(x, y, 3.3, 0, Math.PI*2);
+        ctx.fill();
+      }
+    });
+  }
+
+  function updateRegionUI(){
+    // Region box only visible when "Yes, worldwide"
+    inputs.regionBox.style.display = isWorldwideMode() ? "block" : "none";
+
+    // NA suboptions visible only if worldwide mode AND NA selected
+    const showNA = isWorldwideMode() && getSelectedRegion() === "NA";
+    inputs.naSubRegion.style.display = showNA ? "block" : "none";
+  }
+
+  function clearOutputs(){
+    [kpiM1,kpiPeak,kpiTotal,kpiHolidayShare].forEach(el => el.textContent = "�");
+    tableBody.innerHTML = "";
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+
+  function updateEffectiveKpisAlways(){
+    // These stay visible at all times
+    if (inputs.totalSales.value === ""){
+      kpiEffectiveSales.textContent = "�";
+      kpiFraction.textContent = "�";
+      return;
+    }
+    const { frac, effective } = computeEffectiveSales();
+    kpiEffectiveSales.textContent = fmtNum(Math.round(effective));
+    kpiFraction.textContent = (frac * 100).toFixed(2) + "%";
+  }
+
+  function updateURLFromInputs(){
+    const params = new URLSearchParams();
+    params.set("S", inputs.totalSales.value);
+    params.set("N", inputs.N.value);
+    params.set("m0", inputs.m0.value);
+    params.set("H", inputs.halfLifeNum.value);
+    params.set("bNov", inputs.bNov.value);
+    params.set("bDec", inputs.bDec.value);
+    params.set("noHoliday", inputs.showNoHoliday.checked ? "1" : "0");
+    params.set("isWW", isWorldwideMode() ? "1" : "0");
+
+    // only meaningful if isWW=1, but safe to store either way
+    params.set("region", getSelectedRegion());
+    params.set("naUSA", inputs.naUSA.checked ? "1" : "0");
+    params.set("naCAN", inputs.naCAN.checked ? "1" : "0");
+    params.set("naMEX", inputs.naMEX.checked ? "1" : "0");
+
+    const url = `${location.pathname}?${params.toString()}`;
+    history.replaceState(null, "", url);
+  }
+
+  function loadInputsFromURL(){
+    const p = new URLSearchParams(location.search);
+
+    if (p.has("S")) inputs.totalSales.value = p.get("S");
+    if (p.has("N")) inputs.N.value = p.get("N");
+    if (p.has("m0")) inputs.m0.value = p.get("m0");
+    if (p.has("H")) { inputs.halfLifeNum.value = p.get("H"); inputs.halfLife.value = clampHalfLife(p.get("H")); }
+    if (p.has("bNov")) inputs.bNov.value = p.get("bNov");
+    if (p.has("bDec")) inputs.bDec.value = p.get("bDec");
+    if (p.has("noHoliday")) inputs.showNoHoliday.checked = (p.get("noHoliday") === "1");
+
+    if (p.has("isWW")){
+      const v = p.get("isWW") === "1";
+      inputs.isWWYes.checked = v;
+      inputs.isWWNo.checked = !v;
+    }
+
+    if (p.has("region")){
+      const r = p.get("region");
+      inputs.regWW.checked = (r === "WW");
+      inputs.regNA.checked = (r === "NA");
+      inputs.regEU.checked = (r === "EU");
+      inputs.regJP.checked = (r === "JP");
+    }
+    if (p.has("naUSA")) inputs.naUSA.checked = (p.get("naUSA") === "1");
+    if (p.has("naCAN")) inputs.naCAN.checked = (p.get("naCAN") === "1");
+    if (p.has("naMEX")) inputs.naMEX.checked = (p.get("naMEX") === "1");
+  }
+
+  function exportCSV(){
+    if (!isReady()) return;
+
+    const { rows } = computeSeries({ enableHolidays: true });
+    const header = ["t","calendar_month","season_multiplier","weight","sales","cumulative"];
+    const lines = [header.join(",")];
+    rows.forEach(r => {
+      lines.push([
+        r.t,
+        monthNames[r.cm-1],
+        r.s,
+        r.w,
+        Math.round(r.sales),
+        Math.round(r.cum)
+      ].join(","));
+    });
+
+    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "sales_decay_holiday_bump.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  function copySharableURL(){
+    navigator.clipboard.writeText(location.href).then(()=>{
+      alert("Copied URL to clipboard!");
+    }).catch(()=>{
+      alert("Couldn�t copy automatically. You can manually copy the address bar URL.");
+    });
+  }
+
+  function render(){
+    // half-life sync
+    const H = Math.max(1, Math.floor(Number(inputs.halfLifeNum.value)));
+    inputs.halfLifeNum.value = H;
+    inputs.halfLife.value = clampHalfLife(H);
+
+    const r = rFromHalfLife(H);
+    inputs.derivedR.value = r.toFixed(6);
+
+    updateRegionUI();
+    updateEffectiveKpisAlways();
+
+    const ready = isReady();
+    inputs.emptyState.style.display = ready ? "none" : "block";
+
+    if (!ready){
+      clearOutputs();
+      updateURLFromInputs();
+      return;
+    }
+
+    const withH = computeSeries({ enableHolidays: true });
+
+    // warnings
+    warnMsg.style.display = "none";
+    const anyNegSeason = withH.rows.some(x => x.s <= 0);
+    if (anyNegSeason){
+      warnMsg.textContent = "Warning: One of your season multipliers is <= 0 (Nov/Dec bump too negative). Sales may behave oddly.";
+      warnMsg.style.display = "block";
+    }
+
+    const rows = withH.rows;
+
+    // KPIs (whole units)
+    const m1 = rows[0]?.sales ?? 0;
+    let peak = { t: 1, sales: m1 };
+    for (const rr of rows){
+      if (rr.sales > peak.sales) peak = { t: rr.t, sales: rr.sales };
+    }
+    const total = rows.length ? rows[rows.length-1].cum : 0;
+    const holiday = rows.filter(x => x.cm === 11 || x.cm === 12).reduce((a,b)=>a+b.sales,0);
+    const holidayShare = (withH.S > 0) ? (holiday / withH.S) : 0;
+
+    kpiM1.textContent = fmtNum(Math.round(m1));
+    kpiPeak.textContent = `${fmtNum(Math.round(peak.sales))} (t=${peak.t})`;
+    kpiTotal.textContent = fmtNum(Math.round(total));
+    kpiHolidayShare.textContent = (holidayShare*100).toFixed(2) + "%";
+
+    // table (whole units)
+    tableBody.innerHTML = "";
+    rows.forEach(rr => {
+      const seasonTxt = rr.cm === 11 ? "Nov bump" : rr.cm === 12 ? "Dec bump" : "";
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${rr.t}</td>
+        <td>${monthNames[rr.cm-1]}</td>
+        <td>${rr.s.toFixed(3)} ${seasonTxt ? "� "+seasonTxt : ""}</td>
+        <td>${rr.w.toFixed(6)}</td>
+        <td>${fmtNum(Math.round(rr.sales))}</td>
+        <td>${fmtNum(Math.round(rr.cum))}</td>
+      `;
+      tableBody.appendChild(tr);
+    });
+
+    const noHoliday = inputs.showNoHoliday.checked
+      ? computeSeries({ enableHolidays: false })
+      : null;
+
+    drawChart(withH.rows, noHoliday ? noHoliday.rows : null);
+
+    updateURLFromInputs();
+  }
+
+  function wireEvents(){
+    [inputs.totalSales, inputs.N, inputs.m0, inputs.bNov, inputs.bDec, inputs.showNoHoliday]
+      .forEach(el => {
+        el.addEventListener("input", render);
+        el.addEventListener("change", render);
+      });
+
+    [inputs.isWWYes, inputs.isWWNo].forEach(el => el.addEventListener("change", render));
+    [inputs.regWW, inputs.regNA, inputs.regEU, inputs.regJP].forEach(el => el.addEventListener("change", render));
+    [inputs.naUSA, inputs.naCAN, inputs.naMEX].forEach(el => el.addEventListener("change", render));
+
+    inputs.showAdvanced.addEventListener("change", () => {
+      advancedArea.style.display = inputs.showAdvanced.checked ? "block" : "none";
+    });
+
+    inputs.halfLife.addEventListener("input", () => {
+      inputs.halfLifeNum.value = inputs.halfLife.value;
+      render();
+    });
+    inputs.halfLifeNum.addEventListener("input", render);
+
+    $("useExample").addEventListener("click", () => {
+      inputs.totalSales.value = 5300000;
+      inputs.N.value = 72;        //PS3 NA released Nov 11, 2006
+      inputs.m0.value = "12";     // Dec 17, 2001 NA release date
+
+      // keep advanced defaults
+      inputs.halfLife.value = 10;
+      inputs.halfLifeNum.value = 10;
+      inputs.bNov.value = 0.15;
+      inputs.bDec.value = 0.30;
+      inputs.showNoHoliday.checked = true;
+
+      // worldwide mode OFF + reset region controls
+      inputs.isWWYes.checked = false;
+      inputs.isWWNo.checked = true;
+      inputs.regWW.checked = true;
+      inputs.regNA.checked = false;
+      inputs.regEU.checked = false;
+      inputs.regJP.checked = false;
+      inputs.naUSA.checked = true;
+      inputs.naCAN.checked = true;
+      inputs.naMEX.checked = true;
+
+      render();
+    });
+
+    $("clearAll").addEventListener("click", () => {
+      inputs.totalSales.value = "";
+      inputs.N.value = "";
+      inputs.m0.value = "";
+
+      // keep advanced knobs as-is (feels nicer), but reset mode to worldwide yes
+      inputs.isWWYes.checked = false;
+      inputs.isWWNo.checked = true;
+
+      // reset region selections
+      inputs.regWW.checked = true;
+      inputs.regNA.checked = false;
+      inputs.regEU.checked = false;
+      inputs.regJP.checked = false;
+      inputs.naUSA.checked = true;
+      inputs.naCAN.checked = true;
+      inputs.naMEX.checked = true;
+
+      render();
+    });
+
+    $("exportCSV").addEventListener("click", exportCSV);
+    $("copyLink").addEventListener("click", copySharableURL);
+  }
+
+  // init
+  loadInputsFromURL();
+  wireEvents();
+  advancedArea.style.display = inputs.showAdvanced.checked ? "block" : "none";
+  render();
+</script>
+</body>
+</html>
