@@ -451,6 +451,16 @@
     </section>
 
     <section class="card">
+      <h2>Chart</h2>
+      <div class="canvasWrap">
+        <canvas id="chart" width="900" height="280"></canvas>
+      </div>
+
+      <div class="legend">
+        <span><span class="swatch" style="background: rgba(166,255,203,0.75);"></span>With Nov/Dec bumps</span>
+        <span><span class="swatch" style="background: rgba(122,167,255,0.75);"></span>No holidays (pure decay)</span>
+      </div>
+      <br>
       <h2>Variable Definitions:</h2>
       <div class="formula">
         Let <font class="hlight">S</font> = effective sales used (after any filters)<br>
@@ -473,16 +483,6 @@
         style="max-width:100%; height:auto; display:block; margin-top:10px;"
       >
 
-      </div>
-      <h2 style="margin-top:12px;">Chart</h2>
-      <div class="canvasWrap">
-        <canvas id="chart" width="900" height="280"></canvas>
-      </div>
-
-      <div class="legend">
-        <span><span class="swatch" style="background: rgba(166,255,203,0.75);"></span>With Nov/Dec bumps</span>
-        <span><span class="swatch" style="background: rgba(122,167,255,0.75);"></span>No holidays (pure decay)</span>
-        <span class="note">Dots mark Nov/Dec months on the �with holidays� curve.</span>
       </div>
     </section>
   </div>
