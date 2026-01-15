@@ -277,11 +277,10 @@
 <body>
 <header>
   <h1>Video Game Lifecycle Sales Distribution Estimator</h1>
-  
-    Calculate game sales distributed over months of lifecycle using an exponential decay formula.<br>
+  <div class="note">Calculate game sales distributed over months of lifecycle using an exponential decay formula.<br>
      - Front-end loaded, seasonal multipliers (Nov/Dec), normalized so monthly totals add up to sales total.<br>
-     - Includes a half-life slider + a no-holiday comparison curve.<br>
-  </p>
+     - Includes a half-life slider + a no-holiday comparison curve.
+  </div>
 </header>
 
 <main>
@@ -294,12 +293,12 @@
           <label for="totalSales">Total Sales</label>
           <input id="totalSales" type="number" min="0" step="1000" value="" placeholder="Enter total sales (e.g., 5300000)" />
 
-          <!-- NEW: worldwide yes/no -->
+          <!-- worldwide yes/no -->
           <div class="wwQuestion">
             <div class="title">Is this worldwide sales?</div>
             <div class="regionRow" aria-label="Worldwide sales question">
-              <label><input type="radio" name="isWorldwide" id="isWWYes" value="yes" checked> Yes</label>
-              <label><input type="radio" name="isWorldwide" id="isWWNo" value="no"> No</label>
+              <label><input type="radio" name="isWorldwide" id="isWWYes" value="yes"> Yes</label>
+              <label><input type="radio" name="isWorldwide" id="isWWNo" value="no" checked> No</label>
             </div>
             <div class="subHint" id="wwHint">
               If <b>Yes</b>, we can convert Worldwide into NA / Europe / Japan. If <b>No</b>, we assume the number you entered is already the region you want.
@@ -466,7 +465,8 @@
         <font class="hlight">M(t)</font> = monthly sales (normalized) = S * w(t) / (sum_{k=1..N} w(k))<br>
       </div>
       <div>
-
+      <br>
+      <h2>Formula:</h2>
       <img
         src="formula.png"
         alt="Sales distribution formula"
