@@ -452,20 +452,28 @@
     </section>
 
     <section class="card">
-      <h2>Calculations:</h2>
+      <h2>Variable Definitions:</h2>
       <div class="formula">
-Let <font class="hlight">S</font> = effective sales used (after any filters)<br>
-<font class="hlight">N</font> = months sold<br>
-<font class="hlight">t</font> = 1..N<br>
-<font class="hlight">m0</font> = launch month (1..12), bNov, bDec<br>
-<font class="hlight">H</font> = half-life: months until sales halve<br>
-<font class="hlight">r</font> = 0.5^(1/H)<br>
-<font class="hlight">m(t)</font> = calendar month = ((m0 - 1 + (t - 1)) mod 12) + 1<br>
-<font class="hlight">s(t)</font> = season multiplier = 1 + { bNov if m(t)=11; bDec if m(t)=12; 0 otherwise }<br>
-<font class="hlight">w(t)</font> = weight = r^(t-1) * s(t)<br>
-<font class="hlight">M(t)</font> = monthly sales (normalized) = S * w(t) / (sum_{k=1..N} w(k))<br>
+        Let <font class="hlight">S</font> = effective sales used (after any filters)<br>
+        <font class="hlight">N</font> = Number of months sold<br>
+        <font class="hlight">t</font> = Month index since launch = 1..N<br>
+        <font class="hlight">m0</font> = launch month (1..12), bNov, bDec<br>
+        <font class="hlight">H</font> = half-life: months until sales halve<br>
+        <font class="hlight">r</font> = Decay factor = 0.5^(1/H)<br>
+        <font class="hlight">m(t)</font> = calendar month = ((m0 - 1 + (t - 1)) mod 12) + 1<br>
+        <font class="hlight">s(t)</font> = season multiplier = 1 + { bNov if m(t)=11; bDec if m(t)=12; 0 otherwise }<br>
+        <font class="hlight">w(t)</font> = weight = r^(t-1) * s(t)<br>
+        <font class="hlight">M(t)</font> = monthly sales (normalized) = S * w(t) / (sum_{k=1..N} w(k))<br>
       </div>
+      <div>
 
+      <img
+        src="formula.png"
+        alt="Sales distribution formula"
+        style="max-width:100%; height:auto; display:block; margin-top:10px;"
+      >
+
+      </div>
       <h2 style="margin-top:12px;">Chart</h2>
       <div class="canvasWrap">
         <canvas id="chart" width="900" height="280"></canvas>
