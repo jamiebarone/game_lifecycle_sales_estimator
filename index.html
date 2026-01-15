@@ -95,7 +95,7 @@
       padding:10px;
       background: rgba(0,0,0,0.18);
     }
-    .kpi .big{ font-size:18px; margin-top:3px; color:#eaf3ff; }
+    .kpi .big{ font-size:18px; margin-top:3px; color:yellow; }
     .kpi .small{ color:var(--muted); font-size:12px; }
 
     .canvasWrap{
@@ -144,6 +144,14 @@
       cursor:pointer;
     }
     button:hover{ background: rgba(122,167,255,0.28); }
+    button.primary{
+      background: linear-gradient(180deg, rgba(140,240,255,.22), rgba(15,23,48,.55));
+      border-color: rgba(140,240,255,.35);
+    }
+    button.danger{
+      background: linear-gradient(180deg, rgba(255,107,107,.18), rgba(15,23,48,.55));
+      border-color: rgba(255,107,107,.30);
+    }
     .ghost{ background: rgba(0,0,0,0.18); border:1px solid var(--line); color:var(--muted); }
 
     .rangeRow{
@@ -263,6 +271,7 @@
     .hlight{
       color:yellow;
     }
+    
   </style>
 </head>
 <body>
@@ -362,7 +371,7 @@
             <option value="12">Dec (12)</option>
           </select>
         </div>
-        <button id="clearAll" class="ghost">Clear All</button>
+        <button id="clearAll" class="btn danger">Clear All</button>
         
         <div>
           <!--<label for="showAdvanced">Advanced Controls</label> -->
@@ -412,9 +421,9 @@
         <p class="warn" id="warnMsg"></p>
 
         <div class="btnbar">
-          <button id="useExample">Demo PS2 FFX</button>
-          <button id="exportCSV" class="ghost">Export table as CSV</button>
-          <button id="copyLink" class="ghost">Copy sharable URL (query params)</button>
+          <button class="btn primary" id="useExample">Demo PS2 FFX</button>
+          <button class="btn primary" id="exportCSV" class="ghost">Export table as CSV</button>
+          <button class="btn primary" id="copyLink" class="ghost">Copy sharable URL (query params)</button>
         </div>
       </div>
 
@@ -487,6 +496,8 @@ Let <font class="hlight">S</font> = effective sales used (after any filters)<br>
         <tbody></tbody>
       </table>
     </div>
+    <br>
+    <div class="note">© 2026 Jamie Barone Enterprises - Contact jabarone11@gmail.com</div>
   </section>
 </main>
 
