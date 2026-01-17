@@ -505,7 +505,15 @@
       </table>
     </div>
     <br>
-    <div class="note">© 2026 Jamie Barone Enterprises - Contact jabarone11@gmail.com</div>
+    <section class="card">
+      <div class="note">
+        <b>Other Tools:</b><br>
+        <a href="https://jamiebarone.github.io/video_game_rarity_tiers/" target="_blank" rel="noopener noreferrer">Video Game Rarity Tiers</a><br>
+        <a href="https://jamiebarone.github.io/sealed_game_estimator/" target="_blank" rel="noopener noreferrer">Sealed Video Game Estimator</a><br>
+        <a href="https://jamiebarone.github.io/game_lifecycle_sales_estimator/" target="_blank" rel="noopener noreferrer">Video Game Lifecycle Sales Estimator</a><br>
+        © 2026 Jamie Barone Enterprises - Contact jabarone11@gmail.com
+      </div>
+    </section>
   </section>
 </main>
 
@@ -835,7 +843,7 @@
     const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "sales_decay_holiday_bump.csv";
+    a.download = "game_lifecycle_sales_estimator.csv";
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -845,7 +853,7 @@
     navigator.clipboard.writeText(location.href).then(()=>{
       alert("Copied URL to clipboard!");
     }).catch(()=>{
-      alert("Couldn�t copy automatically. You can manually copy the address bar URL.");
+      alert("Couldn't copy automatically. You can manually copy the address bar URL.");
     });
   }
 
@@ -905,7 +913,7 @@
       tr.innerHTML = `
         <td>${rr.t}</td>
         <td>${monthNames[rr.cm-1]}</td>
-        <td>${rr.s.toFixed(3)} ${seasonTxt ? "� "+seasonTxt : ""}</td>
+        <td>${rr.s.toFixed(3)} ${seasonTxt ? " "+seasonTxt : ""}</td>
         <td>${rr.w.toFixed(6)}</td>
         <td>${fmtNum(Math.round(rr.sales))}</td>
         <td>${fmtNum(Math.round(rr.cum))}</td>
