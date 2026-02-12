@@ -310,10 +310,10 @@
             <div class="regionGrid">
               <div>
                 <div class="regionRow" aria-label="Region selector">
-                  <label><input type="radio" name="region" id="regWW" value="WW" checked> Worldwide</label>
-                  <label><input type="radio" name="region" id="regNA" value="NA"> North America</label>
-                  <label><input type="radio" name="region" id="regEU" value="EU"> Europe</label>
-                  <label><input type="radio" name="region" id="regJP" value="JP"> Japan</label>
+                  <label><input type="radio" name="region" id="regWW" value="WW" checked> Worldwide (100%)</label>
+                  <label><input type="radio" name="region" id="regNA" value="NA"> North America (55%)</label>
+                  <label><input type="radio" name="region" id="regJP" value="JP"> Japan (25%)</label>
+                  <label><input type="radio" name="region" id="regEU" value="EU"> Europe (20%)</label>
                 </div>
                 <div class="subHint">
                   These only apply when <b>Is this worldwide sales?</b> is set to <b>Yes</b>.
@@ -327,7 +327,7 @@
                   <label><input type="checkbox" id="naMEX" checked> Mexico (8%)</label>
                 </div>
                 <div class="subHint">
-                  NA is modeled as 45% of Worldwide, then filtered by selected sub-shares.
+                  NA is modeled as 55% of Worldwide, then filtered by selected sub-shares.
                 </div>
               </div>
             </div>
@@ -521,7 +521,7 @@
 <script>
   const $ = (id) => document.getElementById(id);
 
-  const REGION = { WW: 1.00, NA: 0.45, EU: 0.25, JP: 0.30 };
+  const REGION = { WW: 1.00, NA: 0.55, EU: 0.20, JP: 0.25 };
   const NA_SHARES = { USA: 0.80, CAN: 0.12, MEX: 0.08 };
 
   const inputs = {
